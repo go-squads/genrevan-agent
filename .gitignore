@@ -16,3 +16,5 @@
 /Godeps/
 
 .DS_Store
+
+config/config.yaml
