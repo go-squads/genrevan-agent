@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-squads/genrevan-agent/config"
@@ -8,7 +9,9 @@ import (
 	"github.com/lxc/lxd/shared/api"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 )
 
 type Lxc struct {
@@ -21,8 +24,10 @@ type Lxc struct {
 }
 
 var Lxd lxd.ContainerServer
+var c *config.Conf
 
 func CheckLXCsState(conf *config.Conf) {
+	c = conf
 	connectToLXD()
 
 	response, err := http.Get("http://" + conf.SchedulerIp + ":" + conf.SchedulerPort + "/lxc/lxd/" + os.Getenv("LXD_ID"))
@@ -37,7 +42,7 @@ func CheckLXCsState(conf *config.Conf) {
 
 	for i := 0; i < len(lxcs); i++ {
 		if lxcs[i].Status == "pending" {
-			createNewLXC(lxcs[i].Name, lxcs[i].Image)
+			createNewLXC(lxcs[i])
 		}
 	}
 }
@@ -46,14 +51,14 @@ func connectToLXD() {
 	Lxd, _ = lxd.ConnectLXDUnix("", nil)
 }
 
-func createNewLXC(name, image string) {
+func createNewLXC(l Lxc) {
 	req := api.ContainersPost{
-		Name: name,
+		Name: l.Name,
 		Source: api.ContainerSource{
 			Type:     "image",
 			Protocol: "simplestreams",
 			Server:   "https://cloud-images.ubuntu.com/daily",
-			Alias:    image,
+			Alias:    l.Image,
 		},
 	}
 
@@ -71,21 +76,40 @@ func createNewLXC(name, image string) {
 		fmt.Println(err)
 	}
 
-	updateLXCState(name, "start")
+	updateLXCState(l, "start")
 }
 
-func updateLXCState(name, state string) {
+func updateLXCState(l Lxc, state string) {
 	reqState := api.ContainerStatePut{
 		Action:  state,
 		Timeout: -1,
 	}
 
-	op, err := Lxd.UpdateContainerState(name, reqState, "")
+	op, err := Lxd.UpdateContainerState(l.Name, reqState, "")
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	err = op.Wait()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	l.Status = "running"
+
+	updateStateToServer(l)
+}
+
+func updateStateToServer(l Lxc) {
+	form := url.Values{}
+	form.Add("state", l.Status)
+	body := bytes.NewBufferString(form.Encode())
+
+	client := &http.Client{}
+	req, err := http.NewRequest("PATCH", "http://"+c.SchedulerIp+":"+c.SchedulerPort+"/lxc/"+strconv.Itoa(l.Id)+"/state", body)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	_, err = client.Do(req)
+
 	if err != nil {
 		fmt.Println(err)
 	}
