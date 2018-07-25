@@ -9,6 +9,7 @@ import(
   "bytes"
   "net/url"
   "github.com/go-squads/genrevan-agent/config"
+  "os"
 )
 
 func getCPULoad() string {
@@ -36,7 +37,7 @@ func SendCurrentLoad(conf *config.Conf) {
 
   client := &http.Client{}
   body := bytes.NewBufferString(data.Encode())
-  req, err := http.NewRequest(http.MethodPut, "http://"+conf.SchedulerIp+":"+conf.SchedulerPort+"/metric/"+strconv.Itoa(conf.LxdId), body)
+  req, err := http.NewRequest(http.MethodPut, "http://"+conf.SchedulerIp+":"+conf.SchedulerPort+"/metric/"+os.Getenv("LXD_ID"), body)
   req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
   respond, err := client.Do(req)
