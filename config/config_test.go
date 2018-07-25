@@ -8,8 +8,7 @@ import (
 )
 
 func TestConfig_ExpectedNoErrorWhileReadConfig(t *testing.T) {
-	var conf config.Conf
-	_, err := conf.GetConfig()
+	_, err := config.GetConfig()
 
 	assert.Equal(t, nil, err)
 }

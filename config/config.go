@@ -15,13 +15,15 @@ type Conf struct {
 
 var basepath = util.GetRootFolderPath()
 
-func (c *Conf) GetConfig() (*Conf, error) {
+func GetConfig() (*Conf, error) {
 	yamlFile, err := ioutil.ReadFile(basepath + "config/config.yaml")
 	if err != nil {
 		return nil, errors.New("File not found")
 	}
 
-	err = yaml.Unmarshal(yamlFile, c)
+	var c *Conf
+
+	err = yaml.Unmarshal(yamlFile, &c)
 	if err != nil {
 		return nil, err
 	}
