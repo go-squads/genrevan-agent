@@ -14,4 +14,3 @@ func GetRootFolderPath() string {
 	dir, _ := filepath.Split(Basepath)
 	return dir
 }
-

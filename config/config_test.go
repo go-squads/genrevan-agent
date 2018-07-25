@@ -12,4 +12,3 @@ func TestConfig_ExpectedNoErrorWhileReadConfig(t *testing.T) {
 
 	assert.Equal(t, nil, err)
 }
-

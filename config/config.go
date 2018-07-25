@@ -9,7 +9,7 @@ import (
 )
 
 type Conf struct {
-	SchedulerIp string `yaml:"SCHEDULER_IP"`
+	SchedulerIp   string `yaml:"SCHEDULER_IP"`
 	SchedulerPort string `yaml:"SCHEDULER_PORT"`
 }
 

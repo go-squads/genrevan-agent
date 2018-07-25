@@ -13,4 +13,3 @@ func TestGetRootPath_ExpectedSuccess(t *testing.T) {
 	splittedPath := strings.Split(path, "/")
 	assert.Equal(t, "genrevan-agent", splittedPath[len(splittedPath)-2])
 }
-
