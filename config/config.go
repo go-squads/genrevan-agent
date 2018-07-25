@@ -9,9 +9,8 @@ import (
 )
 
 type Conf struct {
-	SchedulerIP string `yaml:"SCHEDULER_IP"`
+	SchedulerIp string `yaml:"SCHEDULER_IP"`
 	SchedulerPort string `yaml:"SCHEDULER_PORT"`
-	LxdId	int	`yaml:"LXD_ID"`
 }
 
 var basepath = util.GetRootFolderPath()
