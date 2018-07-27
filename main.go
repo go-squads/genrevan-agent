@@ -21,7 +21,7 @@ var Conf *config.Conf
 func main() {
 	Conf, _ = config.GetConfig()
 
-	if os.Getenv("LXC_ID") == "" {
+	if os.Getenv("LXD_ID") == "" {
 		register()
 	}
 
