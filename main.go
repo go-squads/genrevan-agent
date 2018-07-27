@@ -35,10 +35,7 @@ func main() {
 }
 
 func register() {
-	form := url.Values{}
-	form.Add("ip", getOutboundIP())
-	body := bytes.NewBufferString(form.Encode())
-	response, err := http.Post("http://"+Conf.SchedulerIp+":"+Conf.SchedulerPort+"/lxd/register", "application/x-www-form-urlencoded", body)
+	response, err := http.Get("http://"+Conf.SchedulerIp+":"+Conf.SchedulerPort+"/lxd/register")
 
 	if err != nil {
 		fmt.Println(err)
@@ -54,17 +51,5 @@ func register() {
 	json.Unmarshal(responseBody, &result)
 
 	config.PersistLXDId(strconv.Itoa(result["id"]))
-}
-
-func getOutboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP.String()
 }
 
