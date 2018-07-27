@@ -47,6 +47,8 @@ func CheckLXCsState(conf *config.Conf) {
 			deleteLXC(lxcs[i])
 		} else if lxcs[i].Status == "stopped" {
 			updateLXCState(lxcs[i], "stop")
+		} else if lxcs[i].Status == "started"{
+			updateLXCState(lxcs[i], "start")
 		}
 	}
 }
