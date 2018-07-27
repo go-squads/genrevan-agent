@@ -45,6 +45,8 @@ func CheckLXCsState(conf *config.Conf) {
 			createNewLXC(lxcs[i])
 		} else if lxcs[i].Status == "deleted" {
 			deleteLXC(lxcs[i])
+		} else if lxcs[i].Status == "stopped" {
+			updateLXCState(lxcs[i], "stop")
 		}
 	}
 }
