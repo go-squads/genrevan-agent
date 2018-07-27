@@ -43,6 +43,8 @@ func CheckLXCsState(conf *config.Conf) {
 	for i := 0; i < len(lxcs); i++ {
 		if lxcs[i].Status == "pending" {
 			createNewLXC(lxcs[i])
+		} else if lxcs[i].Status == "deleted" {
+			deleteLXC(lxcs[i])
 		}
 	}
 }
@@ -110,6 +112,20 @@ func updateStateToServer(l Lxc) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	_, err = client.Do(req)
 
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func deleteLXC(l Lxc) {
+	updateLXCState(l, "stop")
+
+	op, err := Lxd.DeleteContainer(l.Name)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	err = op.Wait()
 	if err != nil {
 		fmt.Println(err)
 	}
