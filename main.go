@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/go-squads/genrevan-agent/collector"
@@ -9,9 +8,7 @@ import (
 	"github.com/go-squads/genrevan-agent/manager"
 	"github.com/jasonlvhit/gocron"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
