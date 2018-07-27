@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -30,7 +29,7 @@ func CheckLXCsState(conf *config.Conf) {
 	c = conf
 	connectToLXD()
 
-	response, err := http.Get("http://" + conf.SchedulerIp + ":" + conf.SchedulerPort + "/lxc/lxd/" + os.Getenv("LXD_ID"))
+	response, err := http.Get("http://" + conf.SchedulerIp + ":" + conf.SchedulerPort + "/lxc/lxd/" + conf.LxdId)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,14 +46,34 @@ func CheckLXCsState(conf *config.Conf) {
 			deleteLXC(lxcs[i])
 		} else if lxcs[i].Status == "stopped" {
 			updateLXCState(lxcs[i], "stop")
-		} else if lxcs[i].Status == "started"{
-			updateLXCState(lxcs[i], "start")
+		} else if lxcs[i].Status == "started" {
+			startLXC(lxcs[i])
+		} else if lxcs[i].Status == "running" {
+			if !isLXCExists(lxcs[i].Name) {
+				createNewLXC(lxcs[i])
+			}
 		}
 	}
 }
 
 func connectToLXD() {
 	Lxd, _ = lxd.ConnectLXDUnix("", nil)
+}
+
+func isLXCExists(name string) bool {
+	_, _, err := Lxd.GetContainer(name)
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
+func startLXC(l Lxc) {
+	updateLXCState(l, "start")
+
+	l.Status = "running"
+	updateStateToServer(l)
 }
 
 func createNewLXC(l Lxc) {
@@ -82,7 +101,7 @@ func createNewLXC(l Lxc) {
 		fmt.Println(err)
 	}
 
-	updateLXCState(l, "start")
+	startLXC(l)
 }
 
 func updateLXCState(l Lxc, state string) {
@@ -100,10 +119,6 @@ func updateLXCState(l Lxc, state string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	l.Status = "running"
-
-	updateStateToServer(l)
 }
 
 func updateStateToServer(l Lxc) {

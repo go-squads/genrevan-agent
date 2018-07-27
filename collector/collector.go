@@ -8,7 +8,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -37,7 +36,7 @@ func SendCurrentLoad(conf *config.Conf) {
 
 	client := &http.Client{}
 	body := bytes.NewBufferString(data.Encode())
-	req, err := http.NewRequest(http.MethodPut, "http://"+conf.SchedulerIp+":"+conf.SchedulerPort+"/metric/"+os.Getenv("LXD_ID"), body)
+	req, err := http.NewRequest(http.MethodPut, "http://"+conf.SchedulerIp+":"+conf.SchedulerPort+"/metric/"+conf.LxdId, body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	respond, err := client.Do(req)

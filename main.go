@@ -12,7 +12,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -21,13 +20,18 @@ var Conf *config.Conf
 func main() {
 	Conf, _ = config.GetConfig()
 
-	if os.Getenv("LXD_ID") == "" {
+	if Conf.LxdId == "" {
 		register()
+		Conf, _ = config.GetConfig()
 	}
 
-	gocron.Every(2).Seconds().Do(manager.CheckLXCsState, Conf)
-	gocron.Every(2).Seconds().Do(collector.SendCurrentLoad, Conf)
-	<-gocron.Start()
+	managerCJ := gocron.NewScheduler()
+	managerCJ.Every(2).Seconds().Do(manager.CheckLXCsState, Conf)
+	managerCJ.Start()
+
+	collectorCJ := gocron.NewScheduler()
+	collectorCJ.Every(5).Seconds().Do(collector.SendCurrentLoad, Conf)
+	<-collectorCJ.Start()
 }
 
 func register() {
@@ -37,7 +41,7 @@ func register() {
 	response, err := http.Post("http://"+Conf.SchedulerIp+":"+Conf.SchedulerPort+"/lxd/register", "application/x-www-form-urlencoded", body)
 
 	if err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Println(err)
 	}
 
 	responseBody, err := ioutil.ReadAll(response.Body)
@@ -49,7 +53,7 @@ func register() {
 
 	json.Unmarshal(responseBody, &result)
 
-	os.Setenv("LXD_ID", strconv.Itoa(result["id"]))
+	config.PersistLXDId(strconv.Itoa(result["id"]))
 }
 
 func getOutboundIP() string {
@@ -63,3 +67,4 @@ func getOutboundIP() string {
 
 	return localAddr.IP.String()
 }
+
