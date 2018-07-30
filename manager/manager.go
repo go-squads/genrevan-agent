@@ -23,15 +23,14 @@ type Lxc struct {
 }
 
 var Lxd lxd.ContainerServer
-var c *config.Conf
 
-func CheckLXCsState(conf *config.Conf) {
-	c = conf
+func CheckLXCsState() {
 	connectToLXD()
 
-	response, err := http.Get("http://" + conf.SchedulerIp + ":" + conf.SchedulerPort + "/lxc/lxd/" + conf.LxdId)
+	response, err := http.Get("http://" + config.Conf.SchedulerIp + ":" + config.Conf.SchedulerPort + "/lxc/lxd/" + config.Conf.LxdId)
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 
 	var lxcs = []Lxc{}
@@ -127,7 +126,7 @@ func updateStateToServer(l Lxc) {
 	body := bytes.NewBufferString(form.Encode())
 
 	client := &http.Client{}
-	req, err := http.NewRequest("PATCH", "http://"+c.SchedulerIp+":"+c.SchedulerPort+"/lxc/"+strconv.Itoa(l.Id)+"/state", body)
+	req, err := http.NewRequest("PATCH", "http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/lxc/"+strconv.Itoa(l.Id)+"/state", body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	_, err = client.Do(req)
 

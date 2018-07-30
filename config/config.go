@@ -9,28 +9,27 @@ import (
 	"os"
 )
 
-type Conf struct {
+type conf struct {
 	SchedulerIp   string `yaml:"SCHEDULER_IP"`
 	SchedulerPort string `yaml:"SCHEDULER_PORT"`
 	LxdId         string `yaml:"LXD_ID"`
 }
 
 var basepath = util.GetRootFolderPath()
+var Conf *conf
 
-func GetConfig() (*Conf, error) {
+func SetupConfig() error {
 	yamlFile, err := ioutil.ReadFile(basepath + "config/config.yaml")
 	if err != nil {
-		return nil, errors.New("File not found")
+		return errors.New("File not found")
 	}
 
-	var c *Conf
-
-	err = yaml.Unmarshal(yamlFile, &c)
+	err = yaml.Unmarshal(yamlFile, &Conf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return c, nil
+	return nil
 }
 
 func PersistLXDId(id string) {

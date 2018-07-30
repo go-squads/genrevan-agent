@@ -29,14 +29,14 @@ func getMemoryLoad() string {
 	return fmt.Sprint(memoryLoad.Used / (1024 * 1024))
 }
 
-func SendCurrentLoad(conf *config.Conf) {
+func SendCurrentLoad() {
 	data := url.Values{}
 	data.Add("cpu", getCPULoad())
 	data.Add("memory", getMemoryLoad())
 
 	client := &http.Client{}
 	body := bytes.NewBufferString(data.Encode())
-	req, err := http.NewRequest(http.MethodPut, "http://"+conf.SchedulerIp+":"+conf.SchedulerPort+"/metric/"+conf.LxdId, body)
+	req, err := http.NewRequest(http.MethodPut, "http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/metric/"+config.Conf.LxdId, body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	respond, err := client.Do(req)

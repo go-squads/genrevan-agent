@@ -12,27 +12,32 @@ import (
 	"strconv"
 )
 
-var Conf *config.Conf
-
 func main() {
-	Conf, _ = config.GetConfig()
+	setupConfiguration()
 
-	if Conf.LxdId == "" {
+	if config.Conf.LxdId == "" {
 		register()
-		Conf, _ = config.GetConfig()
+		setupConfiguration()
 	}
 
 	managerCJ := gocron.NewScheduler()
-	managerCJ.Every(2).Seconds().Do(manager.CheckLXCsState, Conf)
+	managerCJ.Every(2).Seconds().Do(manager.CheckLXCsState)
 	managerCJ.Start()
 
 	collectorCJ := gocron.NewScheduler()
-	collectorCJ.Every(5).Seconds().Do(collector.SendCurrentLoad, Conf)
+	collectorCJ.Every(5).Seconds().Do(collector.SendCurrentLoad)
 	<-collectorCJ.Start()
 }
 
+func setupConfiguration() {
+	err := config.SetupConfig()
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func register() {
-	response, err := http.Get("http://"+Conf.SchedulerIp+":"+Conf.SchedulerPort+"/lxd/register")
+	response, err := http.Get("http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/lxd/register")
 
 	if err != nil {
 		fmt.Println(err)
