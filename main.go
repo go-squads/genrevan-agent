@@ -16,7 +16,7 @@ import (
 func main() {
 	setupConfiguration()
 
-	if viper.Get("LXD_ID") == "" {
+	if viper.GetString("LXD_ID") == "" {
 		register()
 		setupConfiguration()
 	}
