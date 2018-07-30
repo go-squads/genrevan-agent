@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/go-squads/genrevan-agent/config"
 	"github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+	"github.com/spf13/viper"
 )
 
 type Lxc struct {
@@ -27,7 +27,7 @@ var Lxd lxd.ContainerServer
 func CheckLXCsState() {
 	connectToLXD()
 
-	response, err := http.Get("http://" + config.Conf.SchedulerIp + ":" + config.Conf.SchedulerPort + "/lxc/lxd/" + config.Conf.LxdId)
+	response, err := http.Get("http://" + viper.GetString("SCHEDULER_IP") + ":" + viper.GetString("SCHEDULER_PORT") + "/lxc/lxd/" + viper.GetString("LXD_ID"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -126,7 +126,7 @@ func updateStateToServer(l Lxc) {
 	body := bytes.NewBufferString(form.Encode())
 
 	client := &http.Client{}
-	req, err := http.NewRequest("PATCH", "http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/lxc/"+strconv.Itoa(l.Id)+"/state", body)
+	req, err := http.NewRequest("PATCH", "http://"+ viper.GetString("SCHEDULER_IP") +":"+ viper.GetString("SCHEDULER_PORT") +"/lxc/"+ strconv.Itoa(l.Id)+"/state", body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	_, err = client.Do(req)
 

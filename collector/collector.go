@@ -3,12 +3,12 @@ package collector
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-squads/genrevan-agent/config"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"net/http"
 	"net/url"
 	"strconv"
+	"github.com/spf13/viper"
 )
 
 func getCPULoad() string {
@@ -36,7 +36,7 @@ func SendCurrentLoad() {
 
 	client := &http.Client{}
 	body := bytes.NewBufferString(data.Encode())
-	req, err := http.NewRequest(http.MethodPut, "http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/metric/"+config.Conf.LxdId, body)
+	req, err := http.NewRequest(http.MethodPut, "http://"+viper.GetString("SCHEDULER_IP")+":"+viper.GetString("SCHEDULER_PORT")+"/metric/"+viper.GetString("LXD_ID"), body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	respond, err := client.Do(req)

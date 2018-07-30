@@ -10,12 +10,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"github.com/spf13/viper"
 )
 
 func main() {
 	setupConfiguration()
 
-	if config.Conf.LxdId == "" {
+	if viper.Get("LXD_ID") == "" {
 		register()
 		setupConfiguration()
 	}
@@ -37,7 +38,7 @@ func setupConfiguration() {
 }
 
 func register() {
-	response, err := http.Get("http://"+config.Conf.SchedulerIp+":"+config.Conf.SchedulerPort+"/lxd/register")
+	response, err := http.Get("http://"+ viper.GetString("SCHEDULER_IP")  +":"+ viper.GetString("SCHEDULER_PORT") +"/lxd/register")
 
 	if err != nil {
 		fmt.Println(err)
