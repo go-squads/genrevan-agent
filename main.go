@@ -22,11 +22,11 @@ func main() {
 	}
 
 	managerCJ := gocron.NewScheduler()
-	managerCJ.Every(2).Seconds().Do(manager.CheckLXCsState)
+	managerCJ.Every(uint64(viper.GetInt("CHECK_STATE_INTERVAL_IN_SECOND"))).Seconds().Do(manager.CheckLXCsState)
 	managerCJ.Start()
 
 	collectorCJ := gocron.NewScheduler()
-	collectorCJ.Every(5).Seconds().Do(collector.SendCurrentLoad)
+	collectorCJ.Every(uint64(viper.GetInt("SEND_LOAD_INTERVAL_IN_SECOND"))).Seconds().Do(collector.SendCurrentLoad)
 	<-collectorCJ.Start()
 }
 
