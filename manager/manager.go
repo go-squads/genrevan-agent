@@ -178,4 +178,17 @@ func deleteLXC(l Lxc) {
 	if err != nil {
 		log.Printf("%v", err)
 	}
+
+	deleteLXCFromServer(l)
+}
+
+func deleteLXCFromServer(l Lxc) {
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", "http://"+viper.GetString("SCHEDULER_IP")+":"+viper.GetString("SCHEDULER_PORT")+"/lxc/"+strconv.Itoa(l.Id), nil)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	_, err = client.Do(req)
+
+	if err != nil {
+		log.Printf("%v", err)
+	}
 }
