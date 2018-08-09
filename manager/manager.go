@@ -25,7 +25,7 @@ type Lxc struct {
 
 var Lxd lxd.ContainerServer
 
-func CheckLXCsState() {
+func CheckLXCsStateFromServer() {
 	connectToLXD()
 
 	response, err := http.Get("http://" + viper.GetString("SCHEDULER_IP") + ":" + viper.GetString("SCHEDULER_PORT") + "/lxc/lxd/" + viper.GetString("LXD_ID"))
@@ -39,38 +39,49 @@ func CheckLXCsState() {
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
 	json.Unmarshal(bodyBytes, &lxcs)
 
+	done := make(chan bool)
+
 	for i := 0; i < len(lxcs); i++ {
-		switch lxcs[i].Status {
-		case "pending":
-			createNewLXC(lxcs[i])
-			startLXC(lxcs[i])
-		case "deleted":
-			if isLXCExists(lxcs[i].Name) {
-				deleteLXC(lxcs[i])
+		go checkLXCState(lxcs[i], done)
+	}
+
+	for i := 0; i < len(lxcs); i++ {
+		<-done
+	}
+}
+
+func checkLXCState(lxc Lxc, done chan bool) {
+	switch lxc.Status {
+	case "pending":
+		createNewLXC(lxc)
+		startLXC(lxc)
+	case "deleted":
+		if isLXCExists(lxc.Name) {
+			deleteLXC(lxc)
+		}
+	case "stopped":
+		if isLXCExists(lxc.Name) {
+			if isLXCRunning(lxc.Name) {
+				log.Printf("%v", "Stopping "+lxc.Name)
+				updateLXCState(lxc, "stop")
 			}
-		case "stopped":
-			if isLXCExists(lxcs[i].Name) {
-				if isLXCRunning(lxcs[i].Name) {
-					log.Printf("%v", "Stopping "+lxcs[i].Name)
-					updateLXCState(lxcs[i], "stop")
-				}
-			} else {
-				createNewLXC(lxcs[i])
-			}
-		case "started":
-			if !isLXCExists(lxcs[i].Name) {
-				createNewLXC(lxcs[i])
-			}
-			startLXC(lxcs[i])
-		case "running":
-			if !isLXCExists(lxcs[i].Name) {
-				createNewLXC(lxcs[i])
-			}
-			if !isLXCRunning(lxcs[i].Name) {
-				startLXC(lxcs[i])
-			}
+		} else {
+			createNewLXC(lxc)
+		}
+	case "started":
+		if !isLXCExists(lxc.Name) {
+			createNewLXC(lxc)
+		}
+		startLXC(lxc)
+	case "running":
+		if !isLXCExists(lxc.Name) {
+			createNewLXC(lxc)
+		}
+		if !isLXCRunning(lxc.Name) {
+			startLXC(lxc)
 		}
 	}
+	done <- true
 }
 
 func connectToLXD() {
@@ -98,12 +109,43 @@ func GetContainer(name string) *api.Container {
 	return c
 }
 
+func getContainerAddress(name string) string {
+	state, _, err := Lxd.GetContainerState(name)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+
+	addresses := state.Network["eth0"].Addresses
+	for _, address := range addresses {
+		if address.Family == "inet" {
+			return address.Address
+		}
+	}
+
+	return ""
+}
+
+func registerContainerAddress(l Lxc) {
+	var address string
+	for {
+		address = getContainerAddress(l.Name)
+		if len(address) > 0 {
+			break
+		}
+	}
+
+	log.Println(address)
+}
+
 func startLXC(l Lxc) {
 	log.Printf("%v", "Starting "+l.Name)
 	updateLXCState(l, "start")
 
-	l.Status = "running"
-	updateStateToServer(l)
+	if isLXCRunning(l.Name) {
+		l.Status = "running"
+		updateStateToServer(l)
+		go registerContainerAddress(l)
+	}
 }
 
 func createNewLXC(l Lxc) {

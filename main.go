@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strconv"
+
 	"github.com/go-squads/genrevan-agent/collector"
 	"github.com/go-squads/genrevan-agent/config"
 	"github.com/go-squads/genrevan-agent/manager"
 	"github.com/jasonlvhit/gocron"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 	"github.com/spf13/viper"
 )
 
@@ -22,7 +23,7 @@ func main() {
 	}
 
 	managerCJ := gocron.NewScheduler()
-	managerCJ.Every(uint64(viper.GetInt("CHECK_STATE_INTERVAL_IN_SECOND"))).Seconds().Do(manager.CheckLXCsState)
+	managerCJ.Every(uint64(viper.GetInt("CHECK_STATE_INTERVAL_IN_SECOND"))).Seconds().Do(manager.CheckLXCsStateFromServer)
 	managerCJ.Start()
 
 	collectorCJ := gocron.NewScheduler()
@@ -38,7 +39,7 @@ func setupConfiguration() {
 }
 
 func register() {
-	response, err := http.Get("http://"+ viper.GetString("SCHEDULER_IP")  +":"+ viper.GetString("SCHEDULER_PORT") +"/lxd/register")
+	response, err := http.Get("http://" + viper.GetString("SCHEDULER_IP") + ":" + viper.GetString("SCHEDULER_PORT") + "/lxd/register")
 
 	if err != nil {
 		fmt.Println(err)
@@ -55,4 +56,3 @@ func register() {
 
 	config.PersistLXDId(strconv.Itoa(result["id"]))
 }
-
