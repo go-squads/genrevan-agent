@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+    "math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/spf13/viper"
+    "github.com/go-squads/genrevan-agent/iptables"
 )
 
 type Lxc struct {
@@ -134,7 +136,17 @@ func registerContainerAddress(l Lxc) {
 		}
 	}
 
-	log.Println(address)
+    rule := iptables.Rule{
+        SourceIP:"10.232.76.145",
+        SourcePort:strconv.Itoa(rand.Intn(3000 - 2000) + 2000),
+        DestinationIP:address,
+        DestinationPort:"80",
+    }
+
+	err := iptables.Insert(rule)
+    if err != nil {
+        log.Println(err)
+    }
 }
 
 func startLXC(l Lxc) {
