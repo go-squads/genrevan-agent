@@ -39,7 +39,7 @@ func execute(args string) (string, error) {
 
 func isRuleExists(r Rule) (bool, error) {
 	args := fmt.Sprintf("-t nat -C PREROUTING -i enp0s8 -p TCP -d %s --dport %s -j DNAT --to-destination %s:%s -m comment --comment 'forward to the Nginx container'", r.SourceIP, r.SourcePort, r.DestinationIP, r.DestinationPort)
-    _, err := execute(args)
+	_, err := execute(args)
 	if err != nil {
 		return false, nil
 	}
@@ -48,12 +48,12 @@ func isRuleExists(r Rule) (bool, error) {
 }
 
 func Insert(r Rule) error {
-    exist, err := isRuleExists(r)
+	exist, err := isRuleExists(r)
 	if err != nil {
 		return err
 	}
 
-    if !exist {
+	if !exist {
 		args := fmt.Sprintf("-t nat -I PREROUTING -i enp0s8 -p TCP -d %s --dport %s -j DNAT --to-destination %s:%s -m comment --comment 'forward to the Nginx container'", r.SourceIP, r.SourcePort, r.DestinationIP, r.DestinationPort)
 		result, err := execute(args)
 		if err != nil {
@@ -67,4 +67,3 @@ func Insert(r Rule) error {
 
 	return nil
 }
-

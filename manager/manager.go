@@ -137,16 +137,16 @@ func registerContainerAddress(l Lxc) {
 	}
 
     rule := iptables.Rule{
-        SourceIP:"10.232.76.145",
+        SourceIP:viper.GetString("LXD_IP"),
         SourcePort:strconv.Itoa(rand.Intn(3000 - 2000) + 2000),
         DestinationIP:address,
         DestinationPort:"80",
     }
 
 	err := iptables.Insert(rule)
-    if err != nil {
-        log.Println(err)
-    }
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func startLXC(l Lxc) {
