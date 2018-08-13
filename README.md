@@ -6,6 +6,7 @@ Genrevan Agent is an open source project to consume Genrevan Scheduler services.
 ## Dependencies
 - [shirou/gopsutil](https://github.com/shirou/gopsutil)
 - [robfig/cron](https://github.com/robfig/cron)
+- netfilter-persistent
 
 ## Build
 ```go install genrevan-agent```

@@ -147,6 +147,11 @@ func registerContainerAddress(l Lxc) {
 	if err != nil {
 		log.Println(err)
 	}
+
+	err = iptables.Save()
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func startLXC(l Lxc) {
