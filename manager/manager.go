@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-    "math/rand"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 
+	"github.com/go-squads/genrevan-agent/iptables"
 	"github.com/lxc/lxd/client"
 	"github.com/lxc/lxd/shared/api"
 	"github.com/spf13/viper"
-    "github.com/go-squads/genrevan-agent/iptables"
 )
 
 type Lxc struct {
@@ -136,12 +136,12 @@ func registerContainerAddress(l Lxc) {
 		}
 	}
 
-    rule := iptables.Rule{
-        SourceIP:viper.GetString("LXD_IP"),
-        SourcePort:strconv.Itoa(rand.Intn(3000 - 2000) + 2000),
-        DestinationIP:address,
-        DestinationPort:"80",
-    }
+	rule := iptables.Rule{
+		SourceIP:        viper.GetString("LXD_IP"),
+		SourcePort:      strconv.Itoa(rand.Intn(3000-2000) + 2000),
+		DestinationIP:   address,
+		DestinationPort: "80",
+	}
 
 	err := iptables.Insert(rule)
 	if err != nil {
