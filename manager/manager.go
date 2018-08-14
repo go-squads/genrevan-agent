@@ -16,14 +16,14 @@ import (
 )
 
 type Lxc struct {
-	Id        int    `json:"id"`
-	Name      string `json:"name"`
-	IpAddress string `json:"ip_address"`
-	Image     string `json:"image"`
-	Status    string `json:"status"`
-	LxdId     int    `json:"lxd_id"`
-	HostPort  int    `json:"host_port"`
-	ContainerPort int `json:"container_port"`
+	Id            int    `json:"id"`
+	Name          string `json:"name"`
+	IpAddress     string `json:"ip_address"`
+	Image         string `json:"image"`
+	Status        string `json:"status"`
+	LxdId         int    `json:"lxd_id"`
+	HostPort      int    `json:"host_port"`
+	ContainerPort int    `json:"container_port"`
 }
 
 var Lxd lxd.ContainerServer
@@ -165,7 +165,7 @@ func updateLXCIPToServer(l Lxc) {
 	body := bytes.NewBufferString(form.Encode())
 
 	httpClient := &http.Client{}
-	url := "http://"+viper.GetString("SCHEDULER_IP")+":"+viper.GetString("SCHEDULER_PORT")+"/lxc/"+strconv.Itoa(l.Id)+"/ip"
+	url := "http://" + viper.GetString("SCHEDULER_IP") + ":" + viper.GetString("SCHEDULER_PORT") + "/lxc/" + strconv.Itoa(l.Id) + "/ip"
 	req, err := http.NewRequest(http.MethodPatch, url, body)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
