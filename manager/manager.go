@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -23,6 +22,8 @@ type Lxc struct {
 	Image     string `json:"image"`
 	Status    string `json:"status"`
 	LxdId     int    `json:"lxd_id"`
+	HostPort  int    `json:"host_port"`
+	ContainerPort int `json:"container_port"`
 }
 
 var Lxd lxd.ContainerServer
@@ -136,14 +137,14 @@ func registerContainerAddress(l Lxc) {
 		}
 	}
 
+	l.IpAddress = address
+
 	rule := iptables.Rule{
 		SourceIP:        viper.GetString("LXD_IP"),
-		SourcePort:      strconv.Itoa(rand.Intn(3000-2000) + 2000),
-		DestinationIP:   address,
-		DestinationPort: "80",
+		SourcePort:      strconv.Itoa(l.HostPort),
+		DestinationIP:   l.IpAddress,
+		DestinationPort: strconv.Itoa(l.ContainerPort),
 	}
-
-	l.IpAddress = address
 
 	updateLXCIPToServer(l)
 
