@@ -143,6 +143,10 @@ func registerContainerAddress(l Lxc) {
 		DestinationPort: "80",
 	}
 
+	l.IpAddress = address
+
+	updateLXCIPToServer(l)
+
 	err := iptables.Insert(rule)
 	if err != nil {
 		log.Println(err)
@@ -151,6 +155,27 @@ func registerContainerAddress(l Lxc) {
 	err = iptables.Save()
 	if err != nil {
 		log.Println(err)
+	}
+}
+
+func updateLXCIPToServer(l Lxc) {
+	form := url.Values{}
+	form.Add("ip", l.IpAddress)
+	body := bytes.NewBufferString(form.Encode())
+
+	httpClient := &http.Client{}
+	url := "http://"+viper.GetString("SCHEDULER_IP")+":"+viper.GetString("SCHEDULER_PORT")+"/lxc/"+strconv.Itoa(l.Id)+"/ip"
+	req, err := http.NewRequest(http.MethodPatch, url, body)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	if err != nil {
+		log.Println("%v", err)
+	}
+
+	httpClient.Do(req)
+
+	if err != nil {
+		log.Println("%v", err)
 	}
 }
 
