@@ -24,6 +24,7 @@ type Lxc struct {
 	LxdId         int    `json:"lxd_id"`
 	HostPort      int    `json:"host_port"`
 	ContainerPort int    `json:"container_port"`
+	ErrorMessage  string `json:"error_message"`
 }
 
 var Lxd lxd.ContainerServer
@@ -57,7 +58,9 @@ func checkLXCState(lxc Lxc, done chan bool) {
 	switch lxc.Status {
 	case "pending":
 		createNewLXC(lxc)
-		startLXC(lxc)
+		if isLXCExists(lxc.Name) {
+			startLXC(lxc)
+		}
 	case "deleted":
 		if isLXCExists(lxc.Name) {
 			deleteLXC(lxc)
@@ -202,6 +205,8 @@ func createNewLXC(l Lxc) {
 		},
 	}
 
+	log.Println("%v", req)
+
 	op, err := Lxd.CreateContainer(req)
 	if err != nil {
 		log.Printf("%v", err)
@@ -215,6 +220,11 @@ func createNewLXC(l Lxc) {
 	err = op.Wait()
 	if err != nil {
 		log.Printf("%v", err)
+		l.Status = "failed"
+		l.ErrorMessage = err.Error()
+		updateLXCErrorToServer(l)
+	} else {
+		log.Println("Container "+l.Name+" Created")
 	}
 }
 
@@ -238,6 +248,22 @@ func updateLXCState(l Lxc, state string) {
 func updateStateToServer(l Lxc) {
 	form := url.Values{}
 	form.Add("state", l.Status)
+	body := bytes.NewBufferString(form.Encode())
+
+	client := &http.Client{}
+	req, err := http.NewRequest("PATCH", "http://"+viper.GetString("SCHEDULER_IP")+":"+viper.GetString("SCHEDULER_PORT")+"/lxc/"+strconv.Itoa(l.Id)+"/state", body)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	_, err = client.Do(req)
+
+	if err != nil {
+		log.Printf("%v", err)
+	}
+}
+
+func updateLXCErrorToServer(l Lxc) {
+	form := url.Values{}
+	form.Add("state", l.Status)
+	form.Add("error_message", l.ErrorMessage)
 	body := bytes.NewBufferString(form.Encode())
 
 	client := &http.Client{}
