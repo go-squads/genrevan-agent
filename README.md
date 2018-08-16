@@ -3,6 +3,9 @@ Genrevan Agent is an open source project to consume Genrevan Scheduler services.
 - Send load metric to Genrevan Scheduler
 - Check for new LXC to be allocate
 
+## Development Environment
+- Golang v 1.10.3
+
 ## Dependencies
 - [shirou/gopsutil](https://github.com/shirou/gopsutil)
 - [robfig/cron](https://github.com/robfig/cron)
@@ -16,4 +19,3 @@ Genrevan Agent is an open source project to consume Genrevan Scheduler services.
 
 ## Test
 ```go test -v```
-
