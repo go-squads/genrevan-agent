@@ -95,17 +95,17 @@ func Delete(r Rule) error {
 		}
 
 		args := fmt.Sprintf("-t nat -D PREROUTING -i enp0s8 -p TCP -d %s --dport %s -j DNAT --to-destination %s:%s", r.SourceIP, r.SourcePort, r.DestinationIP, r.DestinationPort)
-                result, err := execute(path, args)
-                if err != nil {
-                        return err
-                }
+		result, err := execute(path, args)
+		if err != nil {
+			return err
+		}
 
-                if len(result) > 0 {
-                        return errors.New(result)
-                }
-        }
+		if len(result) > 0 {
+			return errors.New(result)
+		}
+	}
 
-        return nil
+	return nil
 }
 
 func Save() error {

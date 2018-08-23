@@ -66,25 +66,7 @@ func checkLXCState(lxc Lxc, done chan bool) {
 	case "stopped":
 		if isLXCExists(lxc.Name) {
 			if isLXCRunning(lxc.Name) {
-				log.Printf("%v", "Stopping "+lxc.Name)
-				updateLXCState(lxc, "stop")
-
-				rule := iptables.Rule{
-                			SourceIP:        viper.GetString("LXD_IP"),
-                			SourcePort:      strconv.Itoa(lxc.HostPort),
-                			DestinationIP:   lxc.IpAddress,
-                			DestinationPort: strconv.Itoa(lxc.ContainerPort),
-				}
-
-				err := iptables.Delete(rule)
-				if err != nil {
-					log.Println(err.Error())
-				}
-
-				err = iptables.Save()
-				if err != nil {
-					log.Println(err.Error())
-				}
+				stopLXC(lxc)
 			}
 		} else {
 			createNewLXC(lxc)
@@ -239,7 +221,7 @@ func createNewLXC(l Lxc) {
 		l.ErrorMessage = err.Error()
 		updateLXCErrorToServer(l)
 	} else {
-		log.Println("Container "+l.Name+" Created")
+		log.Println("Container " + l.Name + " Created")
 	}
 }
 
@@ -288,6 +270,28 @@ func updateLXCErrorToServer(l Lxc) {
 
 	if err != nil {
 		log.Printf("%v", err)
+	}
+}
+
+func stopLXC(l Lxc) {
+	log.Printf("%v", "Stopping "+l.Name)
+	updateLXCState(l, "stop")
+
+	rule := iptables.Rule{
+		SourceIP:        viper.GetString("LXD_IP"),
+		SourcePort:      strconv.Itoa(l.HostPort),
+		DestinationIP:   l.IpAddress,
+		DestinationPort: strconv.Itoa(l.ContainerPort),
+	}
+
+	err := iptables.Delete(rule)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	err = iptables.Save()
+	if err != nil {
+		log.Println(err.Error())
 	}
 }
 
