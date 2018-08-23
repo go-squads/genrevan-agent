@@ -68,6 +68,23 @@ func checkLXCState(lxc Lxc, done chan bool) {
 			if isLXCRunning(lxc.Name) {
 				log.Printf("%v", "Stopping "+lxc.Name)
 				updateLXCState(lxc, "stop")
+
+				rule := iptables.Rule{
+                			SourceIP:        viper.GetString("LXD_IP"),
+                			SourcePort:      strconv.Itoa(lxc.HostPort),
+                			DestinationIP:   lxc.IpAddress,
+                			DestinationPort: strconv.Itoa(lxc.ContainerPort),
+				}
+
+				err := iptables.Delete(rule)
+				if err != nil {
+					log.Println(err.Error())
+				}
+
+				err = iptables.Save()
+				if err != nil {
+					log.Println(err.Error())
+				}
 			}
 		} else {
 			createNewLXC(lxc)
