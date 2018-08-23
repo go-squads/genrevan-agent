@@ -62,9 +62,7 @@ func checkLXCState(lxc Lxc, done chan bool) {
 			startLXC(lxc)
 		}
 	case "deleted":
-		if isLXCExists(lxc.Name) {
-			deleteLXC(lxc)
-		}
+		deleteLXC(lxc)
 	case "stopped":
 		if isLXCExists(lxc.Name) {
 			if isLXCRunning(lxc.Name) {
@@ -277,19 +275,22 @@ func updateLXCErrorToServer(l Lxc) {
 }
 
 func deleteLXC(l Lxc) {
-	log.Printf("%v", "Deleting "+l.Name)
-	updateLXCState(l, "stop")
+	if isLXCExists(l.Name) {
+		log.Printf("%v", "Deleting "+l.Name)
+		updateLXCState(l, "stop")
 
-	op, err := Lxd.DeleteContainer(l.Name)
-	if err != nil {
-		log.Printf("%v", err)
+		op, err := Lxd.DeleteContainer(l.Name)
+		if err != nil {
+			log.Printf("%v", err)
+		}
+
+		err = op.Wait()
+		if err != nil {
+			log.Printf("%v", err)
+		}
 	}
 
-	err = op.Wait()
-	if err != nil {
-		log.Printf("%v", err)
-	}
-
+	log.Printf("%v", "Deleting "+l.Name+" in server")
 	deleteLXCFromServer(l)
 }
 
