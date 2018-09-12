@@ -30,7 +30,12 @@ type Lxc struct {
 var Lxd lxd.ContainerServer
 
 func CheckLXCsStateFromServer() {
-	connectToLXD()
+	err := connectToLXD()
+
+	if err != nil {
+		log.Printf("%v", err)
+		return
+	}
 
 	response, err := http.Get("http://" + viper.GetString("SCHEDULER_IP") + ":" + viper.GetString("SCHEDULER_PORT") + "/lxc/lxd/" + viper.GetString("LXD_ID"))
 	if err != nil {
@@ -87,8 +92,9 @@ func checkLXCState(lxc Lxc, done chan bool) {
 	done <- true
 }
 
-func connectToLXD() {
-	Lxd, _ = lxd.ConnectLXDUnix("", nil)
+func connectToLXD() (err error) {
+	Lxd, err = lxd.ConnectLXDUnix("", nil)
+	return
 }
 
 func isLXCExists(name string) bool {
